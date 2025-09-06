@@ -345,6 +345,142 @@ class AutonomousTradingServer {
             }
         });
         
+        // Authentication endpoints
+        this.app.post('/api/auth/login', (req, res) => {
+            const { email, password } = req.body;
+            
+            // Demo authentication
+            if (email === 'demo@autonomousai.com' && password === 'demo123') {
+                res.json({
+                    success: true,
+                    user: {
+                        id: 'demo-user-123',
+                        email: 'demo@autonomousai.com',
+                        name: 'Demo User',
+                        plan: 'premium',
+                        credits: 10000
+                    },
+                    token: 'demo-jwt-token-123456'
+                });
+            } else if (email === 'admin@autonomousai.com' && password === 'admin123') {
+                res.json({
+                    success: true,
+                    user: {
+                        id: 'admin-user-456',
+                        email: 'admin@autonomousai.com',
+                        name: 'Admin User',
+                        plan: 'enterprise',
+                        credits: 50000
+                    },
+                    token: 'admin-jwt-token-789012'
+                });
+            } else {
+                res.status(401).json({
+                    success: false,
+                    error: 'Invalid credentials'
+                });
+            }
+        });
+        
+        this.app.post('/api/auth/register', (req, res) => {
+            const { email, password, name } = req.body;
+            
+            // Simple demo registration
+            res.json({
+                success: true,
+                message: 'Registration successful',
+                user: {
+                    id: `user-${Date.now()}`,
+                    email,
+                    name,
+                    plan: 'basic',
+                    credits: 1000
+                }
+            });
+        });
+        
+        this.app.post('/api/auth/logout', (req, res) => {
+            res.json({
+                success: true,
+                message: 'Logged out successfully'
+            });
+        });
+        
+        // Dashboard data endpoint
+        this.app.get('/api/dashboard/data', (req, res) => {
+            res.json({
+                trading: {
+                    totalProfit: this.tradingStats.totalProfit,
+                    totalTrades: this.tradingStats.totalTrades,
+                    activeUsers: this.tradingStats.activeUsers,
+                    successRate: this.tradingStats.totalTrades > 0 ? 
+                        (this.tradingStats.totalTrades / this.tradingStats.totalTrades * 100) : 0
+                },
+                ai: {
+                    confidence: this.aiBrain.stats.avgConfidence,
+                    isActive: this.aiBrain.isActive,
+                    lastUpdate: this.aiBrain.stats.lastUpdate
+                },
+                server: {
+                    uptime: Date.now() - this.tradingStats.startTime.getTime(),
+                    status: 'healthy'
+                }
+            });
+        });
+        
+        // User portfolio endpoint
+        this.app.get('/api/user/portfolio/:userId', (req, res) => {
+            const { userId } = req.params;
+            
+            // Demo portfolio data
+            res.json({
+                userId,
+                balance: 10000,
+                positions: [
+                    { symbol: 'EURUSD', size: 0.1, pnl: 45.67, status: 'open' },
+                    { symbol: 'GBPUSD', size: 0.05, pnl: -12.34, status: 'open' }
+                ],
+                totalPnl: 33.33,
+                equity: 10033.33
+            });
+        });
+        
+        // Trading history endpoint
+        this.app.get('/api/trading/history/:userId', (req, res) => {
+            const { userId } = req.params;
+            
+            // Demo trading history
+            res.json({
+                trades: [
+                    {
+                        id: 'trade-001',
+                        symbol: 'EURUSD',
+                        type: 'buy',
+                        size: 0.1,
+                        entryPrice: 1.0850,
+                        exitPrice: 1.0875,
+                        pnl: 25.00,
+                        timestamp: new Date(Date.now() - 3600000).toISOString(),
+                        status: 'closed'
+                    },
+                    {
+                        id: 'trade-002',
+                        symbol: 'GBPUSD',
+                        type: 'sell',
+                        size: 0.05,
+                        entryPrice: 1.2650,
+                        exitPrice: 1.2635,
+                        pnl: 7.50,
+                        timestamp: new Date(Date.now() - 7200000).toISOString(),
+                        status: 'closed'
+                    }
+                ],
+                totalTrades: 2,
+                totalPnl: 32.50,
+                winRate: 100
+            });
+        });
+        
         // Error handling
         this.app.use((error, req, res, next) => {
             console.error('Server error:', error);
